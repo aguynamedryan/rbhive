@@ -84,8 +84,9 @@ module RBHive
     def initialize(server, port = 10_000, options = {}, logger = StdOutLogger.new)
       options ||= {} # backwards compatibility
       raise "'options' parameter must be a hash" unless options.is_a?(Hash)
+      @sasl_params = options.delete(:sasl_params) || {}
       
-      if options[:transport] == :sasl and options[:sasl_params].nil?
+      if options[:transport] == :sasl and @sasl_params.empty?
         raise ":transport is set to :sasl, but no :sasl_params option was supplied"
       end
       
@@ -94,7 +95,6 @@ module RBHive
       options[:hive_version]  ||= 10
       options[:timeout]       ||= 1800
       @options = options
-      
       # Look up the appropriate Thrift protocol version for the supplied Hive version
       @thrift_protocol_version = thrift_hive_protocol(options[:hive_version])
       
@@ -117,7 +117,7 @@ module RBHive
         return Thrift::BufferedTransport.new(thrift_socket(server, port, @options[:timeout]))
       when :sasl
         return Thrift::SaslClientTransport.new(thrift_socket(server, port, @options[:timeout]),
-                                               parse_sasl_params(@options[:sasl_params]))
+                                               parse_sasl_params(@sasl_params))
       when :http
         return Thrift::HTTPClientTransport.new("http://#{server}:#{port}/cliservice")
       else
@@ -375,7 +375,7 @@ module RBHive
     private
 
     def prepare_open_session(client_protocol)
-      req = ::Hive2::Thrift::TOpenSessionReq.new( @options[:sasl_params].nil? ? [] : @options[:sasl_params] )
+      req = ::Hive2::Thrift::TOpenSessionReq.new( @sasl_params.empty? ? [] : @sasl_params )
       req.client_protocol = client_protocol
       req
     end
@@ -385,7 +385,7 @@ module RBHive
     end
 
     def prepare_execute_statement(query)
-      ::Hive2::Thrift::TExecuteStatementReq.new( sessionHandle: self.session, statement: query.to_s, confOverlay: {} )
+      ::Hive2::Thrift::TExecuteStatementReq.new( sessionHandle: self.session, statement: query.to_s, confOverlay: {"impala.resultset.cache.size"=>"100000"} )
     end
 
     def prepare_fetch_results(handle, orientation=:first, rows=100)

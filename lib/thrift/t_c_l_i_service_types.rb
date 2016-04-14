@@ -946,12 +946,18 @@ module Hive2
       CLIENT_PROTOCOL = 1
       USERNAME = 2
       PASSWORD = 3
-      CONFIGURATION = 4
+      MECHANISM = 4
+      REMOTE_HOST = 5
+      REMOTE_PRINCIPAL = 6
+      CONFIGURATION = 7
 
       FIELDS = {
         CLIENT_PROTOCOL => {:type => ::Thrift::Types::I32, :name => 'client_protocol', :default =>         5, :enum_class => ::Hive2::Thrift::TProtocolVersion},
         USERNAME => {:type => ::Thrift::Types::STRING, :name => 'username', :optional => true},
         PASSWORD => {:type => ::Thrift::Types::STRING, :name => 'password', :optional => true},
+        MECHANISM => {:type => ::Thrift::Types::STRING, :name => 'mechanism', :optional => true},
+        REMOTE_HOST => {:type => ::Thrift::Types::STRING, :name => 'remote_host', :optional => true},
+        REMOTE_PRINCIPAL => {:type => ::Thrift::Types::STRING, :name => 'remote_principal', :optional => true},
         CONFIGURATION => {:type => ::Thrift::Types::MAP, :name => 'configuration', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::STRING}, :optional => true}
       }
 
